@@ -13,48 +13,13 @@ simple_gfx::Vector2<double> mouse_pos;
 simple_gfx::Vector2<simple_gfx::KeyState> mouse_state;
 namespace simple_gfx {
 
-template <typename E>
-constexpr typename std::underlying_type<E>::type to_underlying(E e) noexcept {
-  return static_cast<typename std::underlying_type<E>::type>(e);
-}
 static void key_callback(GLFWwindow *window, int key, int scancode, int action,
-                         int mods) {
-  if (action == GLFW_PRESS) {
-    input_state[key] = KeyState::Pressed;
-  } else if (action == GLFW_REPEAT) {
-    input_state[key] = KeyState::Held;
-  } else if (action == GLFW_RELEASE) {
-    input_state[key] = KeyState::Released;
-  }
-}
+                         int mods);
 static void cursor_position_callback(GLFWwindow *window, double xpos,
-                                     double ypos) {
-  mouse_pos.x = xpos;
-  mouse_pos.y = ypos;
-}
+                                     double ypos);
 
 static void mouse_button_callback(GLFWwindow *window, int button, int action,
-                                  int mods) {
-  assert(button < 2);
-
-  if (button == GLFW_MOUSE_BUTTON_LEFT) {
-    if (action == GLFW_PRESS) {
-      mouse_state.first = KeyState::Pressed;
-    } else if (action == GLFW_REPEAT) {
-      mouse_state.first = KeyState::Held;
-    } else if (action == GLFW_RELEASE) {
-      mouse_state.first = KeyState::Held;
-    }
-  } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
-    if (action == GLFW_PRESS) {
-      mouse_state.second = KeyState::Pressed;
-    } else if (action == GLFW_REPEAT) {
-      mouse_state.second = KeyState::Held;
-    } else if (action == GLFW_RELEASE) {
-      mouse_state.second = KeyState::Held;
-    }
-  }
-}
+                                  int mods);
 
 void create_window(int width, int height, const char *title) {
   glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -94,6 +59,45 @@ void begin_drawing() {}
 void end_drawing() {
   glfwSwapBuffers(window);
   glfwPollEvents();
+}
+
+static void key_callback(GLFWwindow *window, int key, int scancode, int action,
+                         int mods) {
+  if (action == GLFW_PRESS) {
+    input_state[key] = KeyState::Pressed;
+  } else if (action == GLFW_REPEAT) {
+    input_state[key] = KeyState::Held;
+  } else if (action == GLFW_RELEASE) {
+    input_state[key] = KeyState::Released;
+  }
+}
+static void cursor_position_callback(GLFWwindow *window, double xpos,
+                                     double ypos) {
+  mouse_pos.x = xpos;
+  mouse_pos.y = ypos;
+}
+
+static void mouse_button_callback(GLFWwindow *window, int button, int action,
+                                  int mods) {
+  assert(button < 2);
+
+  if (button == GLFW_MOUSE_BUTTON_LEFT) {
+    if (action == GLFW_PRESS) {
+      mouse_state.first = KeyState::Pressed;
+    } else if (action == GLFW_REPEAT) {
+      mouse_state.first = KeyState::Held;
+    } else if (action == GLFW_RELEASE) {
+      mouse_state.first = KeyState::Held;
+    }
+  } else if (button == GLFW_MOUSE_BUTTON_RIGHT) {
+    if (action == GLFW_PRESS) {
+      mouse_state.second = KeyState::Pressed;
+    } else if (action == GLFW_REPEAT) {
+      mouse_state.second = KeyState::Held;
+    } else if (action == GLFW_RELEASE) {
+      mouse_state.second = KeyState::Held;
+    }
+  }
 }
 
 } // namespace simple_gfx

@@ -7,6 +7,8 @@ extern simple_gfx::Vector2<double> mouse_pos;
 extern simple_gfx::Vector2<simple_gfx::KeyState> mouse_state;
 
 namespace simple_gfx {
+// Shout out to stackoverflow:
+// https://stackoverflow.com/questions/11421432/how-can-i-output-the-value-of-an-enum-class-in-c11
 template <typename E>
 constexpr typename std::underlying_type<E>::type to_underlying(E e) noexcept {
   return static_cast<typename std::underlying_type<E>::type>(e);
