@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-I../include/, -I../external/glfw/include/, -I../external/, -I../external/glm]
