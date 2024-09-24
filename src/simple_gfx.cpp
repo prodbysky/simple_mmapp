@@ -1,5 +1,6 @@
 #include <cassert>
 #include <cmath>
+#include <cstdint>
 #include <cstring>
 #include <simple_gfx.hpp>
 // clang-format off
@@ -7,10 +8,52 @@
 #include <GLFW/glfw3.h>
 // clang-format on
 
+static const char *vert_shader_source = R"(
+uniform vec2 screenSize;
+uniform vec4 color;
+uniform vec2 transform_pos;
+uniform vec2 transform_size;
+
+out vec4 fragColor;
+
+void main()
+{
+  vec2 vertices[6] =
+  {
+    transform_pos,                                        // Top Left
+    vec2(transform_pos + vec2(0.0, transform_size.y)),    // Bottom Left
+    vec2(transform_pos + vec2(transform_size.x, 0.0)),    // Top Right
+    vec2(transform_pos + vec2(transform_size.x, 0.0)),    // Top Right
+    vec2(transform_pos + vec2(0.0, transform_size.y)),    // Bottom Left
+    transform_pos + transform_size                        // Bottom Right
+  };
+
+  // Normalize Position
+  {
+    vec2 vertexPos = vertices[gl_VertexID];
+    gl_Position = vec4(((vertexPos / screenSize) * 2) - 1, 1.0, 1.0);
+  }
+  fragColor = color;
+}
+)";
+
+static const char *frag_shader_source = R"(
+in vec4 fragColor;
+layout (location = 0) out vec4 outColor;
+
+void main()
+{
+    if (fragColor.a == 0.0) {
+    discard;
+    }
+    outColor = fragColor;
+}
+)";
 static GLFWwindow *window;
 simple_gfx::KeyState input_state[349];
 simple_gfx::Vector2<double> mouse_pos;
 simple_gfx::Vector2<simple_gfx::KeyState> mouse_state;
+static uint32_t quad_shader;
 namespace simple_gfx {
 
 static void key_callback(GLFWwindow *window, int key, int scancode, int action,
@@ -44,6 +87,20 @@ void create_window(int width, int height, const char *title) {
   glfwSetKeyCallback(window, key_callback);
   glfwSetCursorPosCallback(window, cursor_position_callback);
   glfwSetMouseButtonCallback(window, mouse_button_callback);
+
+  uint32_t vert_shader = glCreateShader(GL_VERTEX_SHADER);
+  glShaderSource(vert_shader, 1, &vert_shader_source, nullptr);
+  glCompileShader(vert_shader);
+  uint32_t frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  glShaderSource(frag_shader, 1, &frag_shader_source, nullptr);
+  glCompileShader(frag_shader);
+  quad_shader = glCreateProgram();
+  glAttachShader(quad_shader, vert_shader);
+  glAttachShader(quad_shader, frag_shader);
+  glLinkProgram(quad_shader);
+
+  glDeleteShader(vert_shader);
+  glDeleteShader(frag_shader);
 }
 bool window_should_close() { return glfwWindowShouldClose(window); }
 void destroy_window() { glfwTerminate(); }
