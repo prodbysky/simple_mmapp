@@ -19,7 +19,6 @@
 
 static const char *vert_shader_source = R"(
 #version 330 core
-uniform vec2 screenSize; 
 uniform vec4 color; 
 uniform vec2 transform_pos; 
 uniform vec2 transform_size; 
@@ -61,13 +60,15 @@ void main()
     outColor = fragColor;
 }
 )";
+
 static GLFWwindow *window;
 simple_gfx::KeyState input_state[349];
 simple_gfx::Vector2<double> mouse_pos;
 simple_gfx::Vector2<simple_gfx::KeyState> mouse_state;
 static uint32_t quad_shader;
 static glm::mat4 proj;
-static simple_gfx::Vector2<int> window_size;
+static simple_gfx::Vector2<float> window_size;
+
 namespace simple_gfx {
 
 static void key_callback(GLFWwindow *window, int key, int scancode, int action,
@@ -89,7 +90,7 @@ static void compile_shader() {
   glGetShaderiv(vert_shader, GL_COMPILE_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(vert_shader, 512, NULL, buf);
-    std::cout << buf << '\n';
+    std::cout << "Failed to compile vertex shader: " << buf << '\n';
   }
   uint32_t frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
   glShaderSource(frag_shader, 1, &frag_shader_source, nullptr);
@@ -97,12 +98,18 @@ static void compile_shader() {
   glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
   if (!success) {
     glGetShaderInfoLog(frag_shader, 512, NULL, buf);
-    std::cout << buf << '\n';
+    std::cout << "Failed to compile fragment shader: " << buf << '\n';
   }
   quad_shader = glCreateProgram();
   glAttachShader(quad_shader, vert_shader);
   glAttachShader(quad_shader, frag_shader);
   glLinkProgram(quad_shader);
+
+  glGetShaderiv(frag_shader, GL_LINK_STATUS, &success);
+  if (!success) {
+    glGetShaderInfoLog(quad_shader, 512, NULL, buf);
+    std::cout << "Failed to link shader: " << buf << '\n';
+  }
 
   glDeleteShader(vert_shader);
   glDeleteShader(frag_shader);
@@ -150,25 +157,46 @@ void end_drawing() {
   glfwPollEvents();
 }
 
-void draw_rectangle(Vector2<double> pos, Vector2<double> size, Color color) {
+void set_shader_uniform_vec2(const char *name, Vector2<float> data) {
+  glUseProgram(quad_shader);
+  const int32_t location = glGetUniformLocation(quad_shader, name);
+  if (location == -1) {
+    std::cerr << "Tried to get location of non-existent vec2 uniform: " << name
+              << '\n';
+    return;
+  }
+  glUniform2fv(location, 1, (float[]){data.x, data.y});
+}
+
+void set_shader_uniform_vec4(const char *name, Vector4<float> data) {
+  glUseProgram(quad_shader);
+  const int32_t location = glGetUniformLocation(quad_shader, name);
+  if (location == -1) {
+    std::cerr << "Tried to get location of non-existent vec4 uniform: " << name
+              << '\n';
+    return;
+  }
+  glUniform4fv(location, 1, (float[]){data.x, data.y, data.z, data.w});
+}
+
+void set_shader_uniform_mat4(const char *name, glm::mat4 data) {
+  glUseProgram(quad_shader);
+  const uint32_t location = glGetUniformLocation(quad_shader, name);
+  if (location == -1) {
+    std::cerr << "Tried to get location of non-existent vec4 uniform: " << name
+              << '\n';
+    return;
+  }
+  glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(data));
+}
+
+void draw_rectangle(Vector2<float> pos, Vector2<float> size, Color color) {
   int t_sz[2];
   glUseProgram(quad_shader);
-  glfwGetWindowSize(window, &t_sz[0], &t_sz[1]);
-  const uint32_t ss = glGetUniformLocation(quad_shader, "screenSize");
-  const uint32_t c = glGetUniformLocation(quad_shader, "color");
-  const uint32_t tp = glGetUniformLocation(quad_shader, "transform_pos");
-  const uint32_t ts = glGetUniformLocation(quad_shader, "transform_size");
-  const uint32_t p = glGetUniformLocation(quad_shader, "proj");
-  float sz[2] = {(float)t_sz[0], (float)t_sz[1]};
-  float clr[4] = {color.r / 255.0f, color.g / 255.0f, color.b / 255.0f,
-                  color.a / 255.0f};
-  float quad_size[2] = {(float)size.x, (float)size.y};
-  float quad_pos[2] = {(float)pos.x, (float)pos.y};
-  glUniform2fv(ss, 1, sz);
-  glUniform4fv(c, 1, clr);
-  glUniform2fv(tp, 1, quad_pos);
-  glUniform2fv(ts, 1, quad_size);
-  glUniformMatrix4fv(p, 1, GL_FALSE, glm::value_ptr(proj));
+  set_shader_uniform_vec4("color", color.Normalize());
+  set_shader_uniform_vec2("transform_size", size);
+  set_shader_uniform_vec2("transform_pos", pos);
+  set_shader_uniform_mat4("proj", proj);
 
   glDrawArraysInstanced(GL_TRIANGLES, 0, 6, 1);
 }

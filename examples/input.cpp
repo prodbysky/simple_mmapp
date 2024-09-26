@@ -9,7 +9,7 @@ int main() {
     simple_gfx::begin_drawing();
     simple_gfx::window_clear({.color = 0x181818ff});
     simple_gfx::draw_rectangle({(float)i, 0}, {100, 100},
-                               simple_gfx::Color{0xffaaccff});
+                               {.color = 0xffccaaff});
     simple_gfx::end_drawing();
     if (simple_gfx::is_key_pressed(simple_gfx::Key::A)) {
       std::cout << simple_gfx::get_mouse_pos().x << " "
