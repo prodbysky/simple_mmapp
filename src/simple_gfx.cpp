@@ -52,8 +52,8 @@ static const char *frag_shader_source = R"(
 in vec4 fragColor;
 out vec4 outColor;
 
-void main()
-{
+void main() {
+
     if (fragColor.a == 0.0) {
     discard;
     }
@@ -176,7 +176,7 @@ void set_shader_uniform_vec4(const char *name, Vector4<float> data) {
               << '\n';
     return;
   }
-  glUniform4fv(location, 1, (float[]){data.x, data.y, data.z, data.w});
+  glUniform4fv(location, 1, (float[]){data.r, data.g, data.b, data.a});
 }
 
 void set_shader_uniform_mat4(const char *name, glm::mat4 data) {
@@ -191,7 +191,6 @@ void set_shader_uniform_mat4(const char *name, glm::mat4 data) {
 }
 
 void draw_rectangle(Vector2<float> pos, Vector2<float> size, Color color) {
-  int t_sz[2];
   glUseProgram(quad_shader);
   set_shader_uniform_vec4("color", color.Normalize());
   set_shader_uniform_vec2("transform_size", size);
