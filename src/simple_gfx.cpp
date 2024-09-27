@@ -18,7 +18,7 @@
 #include <simple_gfx_input.hpp>
 #include <simple_gfx_vector.hpp>
 
-static const char* vert_shader_source = R"(
+static const char* quad_vert_shader_src = R"(
 #version 330 core
 uniform vec4 color; 
 uniform vec2 transform_pos; 
@@ -48,9 +48,10 @@ void main()
 }
 )";
 
-static const char* frag_shader_source = R"(
+static const char* quad_frag_shader_src = R"(
 #version 330 core
 in vec4 fragColor;
+in float radius_out;
 out vec4 outColor;
 
 void main() {
@@ -86,7 +87,7 @@ namespace simple_gfx {
                                           int height);
     static void compile_shader() {
         uint32_t vert_shader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vert_shader, 1, &vert_shader_source, nullptr);
+        glShaderSource(vert_shader, 1, &quad_vert_shader_src, nullptr);
         glCompileShader(vert_shader);
         char buf[512];
         int success;
@@ -96,7 +97,7 @@ namespace simple_gfx {
             std::cout << "Failed to compile vertex shader: " << buf << '\n';
         }
         uint32_t frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(frag_shader, 1, &frag_shader_source, nullptr);
+        glShaderSource(frag_shader, 1, &quad_frag_shader_src, nullptr);
         glCompileShader(frag_shader);
         glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
         if (!success) {
@@ -117,6 +118,7 @@ namespace simple_gfx {
         glDeleteShader(vert_shader);
         glDeleteShader(frag_shader);
     }
+
     void create_window(int width, int height, const char* title) {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
         glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
