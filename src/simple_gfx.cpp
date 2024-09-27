@@ -69,6 +69,8 @@ simple_gfx::Vector2<simple_gfx::KeyState> mouse_state;
 static uint32_t quad_shader;
 static glm::mat4 proj;
 static simple_gfx::Vector2<float> window_size;
+static double current_time;
+static double delta;
 
 namespace simple_gfx {
 
@@ -152,7 +154,13 @@ namespace simple_gfx {
         glClear(GL_COLOR_BUFFER_BIT);
     }
 
-    void begin_drawing() {}
+    void begin_drawing() {
+        const auto t_current_time = glfwGetTime();
+        const auto prev_time      = current_time;
+        current_time              = t_current_time;
+        delta                     = t_current_time - prev_time;
+    }
+    double get_frametime() { return delta; }
 
     void end_drawing() {
         glfwSwapBuffers(window);

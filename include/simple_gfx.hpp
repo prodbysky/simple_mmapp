@@ -9,6 +9,7 @@ namespace simple_gfx {
     void begin_drawing();
     void end_drawing();
     void destroy_window();
+    double get_frametime();
 
     void draw_rectangle(Vector2<float> pos, Vector2<float> size, Color color);
 
